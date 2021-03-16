@@ -54,11 +54,10 @@ module HeimdallTools
       hdfs = HeimdallTools::NessusMapper.new(File.read(options[:xml])).to_hdf
 
       puts "\nHDF Generated:"
-      hdfs.keys.each do | host |
+      hdfs.each_key do |host|
         File.write("#{options[:output_prefix]}-#{host}.json", hdfs[host])
         puts "#{options[:output_prefix]}-#{host}.json"
       end
-      
     end
 
     desc 'snyk_mapper', 'snyk_mapper translates Snyk results Json to HDF format Json be viewed on Heimdall'
@@ -69,7 +68,7 @@ module HeimdallTools
     def snyk_mapper
       hdfs = HeimdallTools::SnykMapper.new(File.read(options[:json]), options[:name]).to_hdf
       puts "\r\HDF Generated:\n"
-      hdfs.keys.each do | host |
+      hdfs.each_key do |host|
         File.write("#{options[:output_prefix]}-#{host}.json", hdfs[host])
         puts "#{options[:output_prefix]}-#{host}.json"
       end
@@ -84,7 +83,7 @@ module HeimdallTools
       hdf = HeimdallTools::NiktoMapper.new(File.read(options[:json])).to_hdf
       File.write(options[:output], hdf)
       puts "\r\HDF Generated:\n"
-      puts "#{options[:output]}"
+      puts options[:output].to_s
     end
 
     desc 'jfrog_xray_mapper', 'jfrog_xray_mapper translates Jfrog Xray results Json to HDF format Json be viewed on Heimdall'
@@ -96,9 +95,9 @@ module HeimdallTools
       hdf = HeimdallTools::JfrogXrayMapper.new(File.read(options[:json])).to_hdf
       File.write(options[:output], hdf)
       puts "\r\HDF Generated:\n"
-      puts "#{options[:output]}"
+      puts options[:output].to_s
     end
-    
+
     desc 'dbprotect_mapper', 'dbprotect_mapper translates dbprotect results xml to HDF format Json be viewed on Heimdall'
     long_desc Help.text(:dbprotect_mapper)
     option :xml, required: true, aliases: '-x'
@@ -108,7 +107,7 @@ module HeimdallTools
       hdf = HeimdallTools::DBProtectMapper.new(File.read(options[:xml])).to_hdf
       File.write(options[:output], hdf)
       puts "\r\HDF Generated:\n"
-      puts "#{options[:output]}"
+      puts options[:output].to_s
     end
 
     desc 'aws_config_mapper', 'aws_config_mapper pulls Ruby AWS SDK data to translate AWS Config Rule results into HDF format Json to be viewable in Heimdall'
@@ -120,9 +119,9 @@ module HeimdallTools
       hdf = HeimdallTools::AwsConfigMapper.new(options[:custom_mapping]).to_hdf
       File.write(options[:output], hdf)
       puts "\r\HDF Generated:\n"
-      puts "#{options[:output]}"
+      puts options[:output].to_s
     end
-    
+
     desc 'netsparker_mapper', 'netsparker_mapper translates netsparker enterprise results xml to HDF format Json be viewed on Heimdall'
     long_desc Help.text(:netsparker_mapper)
     option :xml, required: true, aliases: '-x'
@@ -132,7 +131,7 @@ module HeimdallTools
       hdf = HeimdallTools::NetsparkerMapper.new(File.read(options[:xml])).to_hdf
       File.write(options[:output], hdf)
       puts "\r\HDF Generated:\n"
-      puts "#{options[:output]}"
+      puts options[:output].to_s
     end
 
     desc 'version', 'prints version'

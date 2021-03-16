@@ -3,11 +3,10 @@ require 'nokogiri'
 require 'csv'
 require 'heimdall_tools/hdf'
 
-
 RESOURCE_DIR = Pathname.new(__FILE__).join('../../data')
 
 CWE_NIST_MAPPING_FILE = File.join(RESOURCE_DIR, 'cwe-nist-mapping.csv')
-DEFAULT_NIST_TAG = ["SA-11", "RA-5"].freeze
+DEFAULT_NIST_TAG = %w{SA-11 RA-5}.freeze
 
 # rubocop:disable Metrics/AbcSize
 
@@ -58,7 +57,7 @@ module HeimdallTools
 
     def format_code_desc(code_desc)
       desc = ''
-      code_desc.keys.each do |key|
+      code_desc.each_key do |key|
         desc += "#{key.capitalize}: #{code_desc[key]}\n"
       end
       desc
@@ -98,7 +97,7 @@ module HeimdallTools
       dup_ids.each do |dup_id|
         index = 1
         controls.select { |x| x['id'].eql?(dup_id) }.each do |control|
-          control['id'] = control['id'] + '.' + index.to_s
+          control['id'] = "#{control['id']}.#{index}"
           index += 1
         end
       end

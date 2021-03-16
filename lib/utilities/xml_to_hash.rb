@@ -6,11 +6,13 @@ def xml_node_to_hash(node)
     result_hash = {}
     if node.attributes != {}
       attributes = {}
-      node.attributes.keys.each do |key|
+      node.attributes.each_key do |key|
         attributes[node.attributes[key].name] = node.attributes[key].value
       end
     end
-    if !node.children.empty?
+    if node.children.empty?
+      attributes
+    else
       node.children.each do |child|
         result = xml_node_to_hash(child)
 
@@ -36,9 +38,7 @@ def xml_node_to_hash(node)
         # if there is a collision then node content supersets attributes
         result_hash = attributes.merge(result_hash)
       end
-      return result_hash
-    else
-      return attributes
+      result_hash
     end
   else
     node.content.to_s
@@ -47,7 +47,7 @@ end
 
 def xml_to_hash(xml)
   begin
-    data = Nokogiri::XML(xml) { |config| config.strict }
+    data = Nokogiri::XML(xml, &:strict)
   rescue Nokogiri::XML::SyntaxError => e
     puts "XML Parsing caught exception: #{e}"
   end

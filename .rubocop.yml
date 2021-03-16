@@ -1,5 +1,8 @@
 ---
+inherit_from: .rubocop_todo.yml
+
 AllCops:
+  NewCops: enable
   TargetRubyVersion: 2.4
   Exclude:
   - Gemfile
@@ -7,28 +10,20 @@ AllCops:
   - 'test/**/*'
   - 'examples/plugins/train-*/test/**/*'
   - 'vendor/**/*'
-Documentation:
+Style/Documentation:
   Enabled: false
-AlignParameters:
+Layout/ParameterAlignment:
   Enabled: true
-Encoding:
+Style/Encoding:
   Enabled: false
-HashSyntax:
+Style/HashSyntax:
   Enabled: true
-LineLength:
+Layout/LineLength:
   Enabled: false
-EmptyLinesAroundBlockBody:
+Layout/EmptyLinesAroundBlockBody:
   Enabled: false
-MethodLength:
-  Max: 40
-NumericLiterals:
+Style/NumericLiterals:
   MinDigits: 10
-Metrics/CyclomaticComplexity:
-  Max: 10
-Metrics/PerceivedComplexity:
-  Max: 10
-Metrics/AbcSize:
-  Max: 33
 Metrics/ModuleLength:
   Enabled: false
 Style/PercentLiteralDelimiters:
@@ -42,15 +37,13 @@ Style/PercentLiteralDelimiters:
     '%w': '{}'
     '%W': ()
     '%x': ()
-Layout/AlignHash:
+Layout/HashAlignment:
   Enabled: false
 Naming/PredicateName:
   Enabled: false
 Style/ClassAndModuleChildren:
   Enabled: false
 Style/ConditionalAssignment:
-  Enabled: false
-Style/BracesAroundHashParameters:
   Enabled: false
 Style/AndOr:
   Enabled: false
@@ -66,7 +59,7 @@ Style/NegatedIf:
   Enabled: false
 Style/UnlessElse:
   Enabled: false
-BlockDelimiters:
+Style/BlockDelimiters:
   Enabled: false
 Layout/SpaceAroundOperators:
   Enabled: false
@@ -74,5 +67,5 @@ Style/IfUnlessModifier:
   Enabled: false
 Style/FrozenStringLiteralComment:
   Enabled: false
-SignalException:
+Style/SignalException:
   Enabled: false

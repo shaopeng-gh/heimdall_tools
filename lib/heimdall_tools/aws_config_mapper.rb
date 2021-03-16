@@ -13,10 +13,9 @@ INSUFFICIENT_DATA_MSG = 'Not enough data has been collectd to determine complian
 ##
 # HDF mapper for use with AWS Config rules.
 #
-# Ruby AWS Ruby SDK for ConfigService: 
+# Ruby AWS Ruby SDK for ConfigService:
 # - https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/ConfigService/Client.html
 #
-# rubocop:disable Metrics/AbcSize, Metrics/ClassLength
 module HeimdallTools
   class AwsConfigMapper
     def initialize(custom_mapping, verbose = false)
@@ -57,8 +56,8 @@ module HeimdallTools
          title: 'AWS Config',
          summary: 'AWS Config',
          controls: controls,
-         statistics: { aws_config_sdk_version: Aws::ConfigService::GEM_VERSION }
-        )
+         statistics: { aws_config_sdk_version: Aws::ConfigService::GEM_VERSION },
+      )
       results.to_hdf
     end
 
@@ -67,12 +66,12 @@ module HeimdallTools
     ##
     # Read in a config rule -> 800-53 control mapping CSV.
     #
-    # Params: 
+    # Params:
     # - path: The file path to the CSV file
     #
     # Returns: A mapped version of the csv in the format { rule_name: row, ... }
     def get_rule_mapping(path)
-      Hash[CSV.read(path, headers: true).map { |row| [row[0], row] }]
+      CSV.read(path, headers: true).map { |row| [row[0], row] }.to_h
     end
 
     ##
@@ -142,7 +141,7 @@ module HeimdallTools
       end
 
       # Map based on name for easy lookup
-      Hash[compliance_results.collect { |r| [r.config_rule_name, r.to_h] }]
+      compliance_results.collect { |r| [r.config_rule_name, r.to_h] }.to_h
     end
 
     ##
@@ -192,7 +191,7 @@ module HeimdallTools
                                      (result[:result_recorded_time] - result[:config_rule_invoked_time]).round(6)
                                    end
           # status
-          hdf_result['status'] = case result.dig(:compliance_type)
+          hdf_result['status'] = case result[:compliance_type]
                                  when 'COMPLIANT'
                                    'passed'
                                  when 'NON_COMPLIANT'
@@ -209,19 +208,19 @@ module HeimdallTools
         when 'NOT_APPLICABLE'
           rule[:impact] = 0
           rule[:results] << {
-            'run_time': 0,
-            'code_desc': NOT_APPLICABLE_MSG,
-            'skip_message': NOT_APPLICABLE_MSG,
-            'start_time': DateTime.now.strftime('%Y-%m-%dT%H:%M:%S%:z'),
-            'status': 'skipped'
+            run_time: 0,
+            code_desc: NOT_APPLICABLE_MSG,
+            skip_message: NOT_APPLICABLE_MSG,
+            start_time: DateTime.now.strftime('%Y-%m-%dT%H:%M:%S%:z'),
+            status: 'skipped'
           }
         when 'INSUFFICIENT_DATA'
           rule[:results] << {
-            'run_time': 0,
-            'code_desc': INSUFFICIENT_DATA_MSG,
-            'skip_message': INSUFFICIENT_DATA_MSG,
-            'start_time': DateTime.now.strftime('%Y-%m-%dT%H:%M:%S%:z'),
-            'status': 'skipped'
+            run_time: 0,
+            code_desc: INSUFFICIENT_DATA_MSG,
+            skip_message: INSUFFICIENT_DATA_MSG,
+            start_time: DateTime.now.strftime('%Y-%m-%dT%H:%M:%S%:z'),
+            status: 'skipped'
           }
         end
       end
@@ -245,11 +244,11 @@ module HeimdallTools
       # NIST tag
       result['nist'] = []
       default_mapping_match = @default_mapping[config_rule[:config_rule_name]]
-      
+
       result['nist'] += default_mapping_match[1].split('|') unless default_mapping_match.nil?
 
       custom_mapping_match = @custom_mapping[config_rule[:config_rule_name]]
-      
+
       result['nist'] += custom_mapping_match[1].split('|').map { |name| "#{name} (user provided)" } unless custom_mapping_match.nil?
 
       result['nist'] = ['unmapped'] if result['nist'].empty?
@@ -274,11 +273,10 @@ module HeimdallTools
     def hdf_descriptions(config_rule)
       [
         {
-          'label': 'check',
-          'data': check_text(config_rule)
-        }
+          label: 'check',
+          data: check_text(config_rule)
+        },
       ]
     end
   end
 end
-# rubocop:enable Metrics/AbcSize, Metrics/ClassLength

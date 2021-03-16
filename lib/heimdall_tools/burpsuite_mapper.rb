@@ -16,13 +16,11 @@ IMPACT_MAPPING = {
 
 CWE_REGEX = 'CWE-(\d*):'.freeze
 
-DEFAULT_NIST_TAG = ["SA-11", "RA-5", "Rev_4"].freeze
-
-# rubocop:disable Metrics/AbcSize
+DEFAULT_NIST_TAG = %w{SA-11 RA-5 Rev_4}.freeze
 
 module HeimdallTools
   class BurpSuiteMapper
-    def initialize(burps_xml, name=nil, verbose = false)
+    def initialize(burps_xml, _name = nil, verbose = false)
       @burps_xml = burps_xml
       @verbose = verbose
 
@@ -33,11 +31,9 @@ module HeimdallTools
         @issues = data['issues']['issue']
         @burpVersion = data['issues']['burpVersion']
         @timestamp = data['issues']['exportTime']
-
       rescue StandardError => e
         raise "Invalid Burpsuite XML file provided Exception: #{e}"
       end
-
     end
 
     def parse_html(block)
@@ -86,17 +82,17 @@ module HeimdallTools
     end
 
     def desc_tags(data, label)
-      { "data": data || NA_STRING, "label": label || NA_STRING }
+      { data: data || NA_STRING, label: label || NA_STRING }
     end
 
     # Burpsuite report could have multiple issue entries for multiple findings of same issue type.
-    # The meta data is identical across entries 
+    # The meta data is identical across entries
     # method collapse_duplicates return unique controls with applicable findings collapsed into it.
     def collapse_duplicates(controls)
       unique_controls = []
 
       controls.map { |x| x['id'] }.uniq.each do |id|
-        collapsed_results = controls.select { |x| x['id'].eql?(id) }.map {|x| x['results']}
+        collapsed_results = controls.select { |x| x['id'].eql?(id) }.map { |x| x['results'] }
         unique_control = controls.find { |x| x['id'].eql?(id) }
         unique_control['results'] = collapsed_results.flatten
         unique_controls << unique_control
@@ -129,8 +125,8 @@ module HeimdallTools
       controls = collapse_duplicates(controls)
       results = HeimdallDataFormat.new(profile_name: 'BurpSuite Pro Scan',
                                        version: @burpVersion,
-                                       title: "BurpSuite Pro Scan",
-                                       summary: "BurpSuite Pro Scan",
+                                       title: 'BurpSuite Pro Scan',
+                                       summary: 'BurpSuite Pro Scan',
                                        controls: controls)
       results.to_hdf
     end

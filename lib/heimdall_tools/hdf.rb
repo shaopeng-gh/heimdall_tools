@@ -2,14 +2,13 @@ require 'json'
 require 'heimdall_tools/version'
 require 'openssl'
 
-NA_STRING = "".freeze
-NA_TAG = nil.freeze
+NA_STRING = ''.freeze
+NA_TAG = nil
 NA_ARRAY = [].freeze
 NA_HASH = {}.freeze
-NA_FLOAT = 0.0.freeze
+NA_FLOAT = 0.0
 
 PLATFORM_NAME = 'Heimdall Tools'.freeze
-
 
 module HeimdallTools
   class HeimdallDataFormat
@@ -60,7 +59,7 @@ module HeimdallTools
       profile_block['groups']          = groups
       profile_block['status']          = status
       profile_block['controls']        = controls
-      profile_block['sha256']          = OpenSSL::Digest::SHA256.digest(profile_block.to_s).unpack("H*")[0]
+      profile_block['sha256']          = OpenSSL::Digest::SHA256.digest(profile_block.to_s).unpack1('H*')
       @results_json['profiles'] << profile_block
     end
 
