@@ -11,7 +11,8 @@ jobs:
     strategy:
       matrix:
         platform: [ubuntu-16.04, ubuntu-latest, macos-latest, windows-latest]
-        ruby: [ 2.5, 2.6, 2.7, 3.0 ]
+        ruby: [ 2.5, 2.6, 2.7 ]
+      fail-fast: false
     runs-on: ${{ matrix.platform }}
 
     steps:
@@ -31,3 +32,33 @@ jobs:
           gem install heimdall_tools*.gem
           heimdall_tools help
           heimdall_tools version
+      - name: Test burpsuite mapper
+        run: |
+          heimdall_tools burpsuite_mapper -x ./sample_jsons/burpsuite_mapper/sample_input_report/zero.webappsecurity.com.min -o burpsuite_output.json
+          jq 'del(.version, .platform.release)' burpsuite_output.json > burpsuite_output_jq.json
+          jq 'del(.version, .platform.release)' ./sample_jsons/burpsuite_mapper/zero.webappsecurity.json > burpsuite_sample.json
+          diff burpsuite_sample.json burpsuite_output_jq.json
+      - name: Test jfrog xray mapper
+        run: |
+          heimdall_tools jfrog_xray_mapper -j ./sample_jsons/jfrog_xray_mapper/sample_input_report/jfrog_xray_sample.json -o jfrog_output.json
+          jq 'del(.version, .platform.release)' jfrog_output.json > jfrog_output_jq.json
+          jq 'del(.version, .platform.release)' ./sample_jsons/jfrog_xray_mapper/jfrog_xray_hdf.json > jfrog_sample.json
+          diff jfrog_sample.json jfrog_output_jq.json
+      - name: Test nikto mapper
+        run: |
+          heimdall_tools nikto_mapper -j ./sample_jsons/nikto_mapper/sample_input_jsons/zero.webappsecurity.json -o nikto_output.json
+          jq 'del(.version, .platform.release)' nikto_output.json > nikto_output_jq.json
+          jq 'del(.version, .platform.release)' ./sample_jsons/nikto_mapper/zero.webappsecurity.json > nikto_sample.json
+          diff nikto_sample.json nikto_output_jq.json
+      - name: Test zap mapper webgoat.json
+        run: |
+          heimdall_tools zap_mapper -j ./sample_jsons/zap_mapper/sample_input_jsons/webgoat.json -n "http://mymac.com:8191" -o zap_output_webgoat.json
+          jq 'del(.version, .platform.release)' zap_output_webgoat.json > zap_output_webgoat_jq.json
+          jq 'del(.version, .platform.release)' ./sample_jsons/zap_mapper/webgoat.json > zap_sample_webgoat.json
+          diff zap_sample_webgoat.json zap_output_webgoat_jq.json
+      - name: Test zap mapper zero.webappsecurity.json
+        run: |
+          heimdall_tools zap_mapper -j ./sample_jsons/zap_mapper/sample_input_jsons/zero.webappsecurity.json -n "http://zero.webappsecurity.com" -o zap_output.json
+          jq 'del(.version, .platform.release)' zap_output.json > zap_output_jq.json
+          jq 'del(.version, .platform.release)' ./sample_jsons/zap_mapper/zero.webappsecurity.json > zap_sample.json
+          diff zap_sample.json zap_output_jq.json
