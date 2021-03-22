@@ -6,7 +6,7 @@ require 'nokogiri'
 
 RESOURCE_DIR = Pathname.new(__FILE__).join('../../data')
 
-NESSUS_PLUGINS_NIST_MAPPING_FILE =   File.join(RESOURCE_DIR, 'nessus-plugins-nist-mapping.csv')
+NESSUS_PLUGINS_NIST_MAPPING_FILE = File.join(RESOURCE_DIR, 'nessus-plugins-nist-mapping.csv')
 U_CCI_LIST =   File.join(RESOURCE_DIR, 'U_CCI_List.xml')
 
 IMPACT_MAPPING = {
@@ -14,16 +14,16 @@ IMPACT_MAPPING = {
   Low: 0.3,
   Medium: 0.5,
   High: 0.7,
-  Critical: 0.9,
+  Critical: 0.9
 }.freeze
 
-DEFAULT_NIST_TAG = ["unmapped"].freeze
+DEFAULT_NIST_TAG = ['unmapped'].freeze
 
 # Nessus results file 800-53 refs does not contain Nist rev version. Using this default
 # version in that case
 DEFAULT_NIST_REV = 'Rev_4'.freeze
 
-NA_PLUGIN_OUTPUT = "This Nessus Plugin does not provide output message.".freeze
+NA_PLUGIN_OUTPUT = 'This Nessus Plugin does not provide output message.'.freeze
 
 # rubocop:disable Metrics/AbcSize
 
@@ -51,19 +51,16 @@ module HeimdallTools
       rescue StandardError => e
         raise "Invalid Nessus XML file provided Exception: #{e}"
       end
-
     end
 
     def extract_report
-      begin
-        # When there are multiple hosts in the nessus report ReportHost field is an array
-        # When there is only one host in the nessus report ReportHost field is a hash
-        # Array() converts ReportHost to array in case there is only one host
-        reports = @data['NessusClientData_v2']['Report']['ReportHost']
-        reports.kind_of?(Array) ? reports : [reports]
-      rescue StandardError => e
-        raise "Invalid Nessus XML file provided Exception: #{e}"
-      end
+      # When there are multiple hosts in the nessus report ReportHost field is an array
+      # When there is only one host in the nessus report ReportHost field is a hash
+      # Array() converts ReportHost to array in case there is only one host
+      reports = @data['NessusClientData_v2']['Report']['ReportHost']
+      reports.is_a?(Array) ? reports : [reports]
+    rescue StandardError => e
+      raise "Invalid Nessus XML file provided Exception: #{e}"
     end
 
     def parse_refs(refs, key)
@@ -71,24 +68,20 @@ module HeimdallTools
     end
 
     def extract_scaninfo
-      begin
-        policy = @data['NessusClientData_v2']['Policy']
-        info = {}
+      policy = @data['NessusClientData_v2']['Policy']
+      info = {}
 
-        info['policyName'] = policy['policyName']
-        info['version'] = policy['Preferences']['ServerPreferences']['preference'].select {|x| x['name'].eql? 'sc_version'}.first['value']
-        info
-      rescue StandardError => e
-        raise "Invalid Nessus XML file provided Exception: #{e}"
-      end
+      info['policyName'] = policy['policyName']
+      info['version'] = policy['Preferences']['ServerPreferences']['preference'].select { |x| x['name'].eql? 'sc_version' }.first['value']
+      info
+    rescue StandardError => e
+      raise "Invalid Nessus XML file provided Exception: #{e}"
     end
 
     def extract_timestamp(report)
-      begin
-        timestamp = report['HostProperties']['tag'].select {|x| x['name'].eql? 'HOST_START'}.first['text']
-      rescue StandardError => e
-        raise "Invalid Nessus XML file provided Exception: #{e}"
-      end
+      report['HostProperties']['tag'].select { |x| x['name'].eql? 'HOST_START' }.first['text']
+    rescue StandardError => e
+      raise "Invalid Nessus XML file provided Exception: #{e}"
     end
 
     def format_desc(issue)
@@ -129,7 +122,7 @@ module HeimdallTools
 
     def cci_nist_tag(cci_refs)
       nist_tags = []
-      cci_refs.each do | cci_ref |
+      cci_refs.each do |cci_ref|
         item_node = @cci_xml.xpath("//cci_list/cci_items/cci_item[@id='#{cci_ref}']")[0] unless @cci_xml.nil?
         unless item_node.nil?
           nist_ref = item_node.xpath('./references/reference[not(@version <= preceding-sibling::reference/@version) and not(@version <=following-sibling::reference/@version)]/@index').text
@@ -140,7 +133,7 @@ module HeimdallTools
     end
 
     def plugin_nist_tag(pluginfamily, pluginid)
-      entries = @cwe_nist_mapping.select { |x| (x[:pluginfamily].eql?(pluginfamily) && (x[:pluginid].eql?('*') || x[:pluginid].eql?(pluginid.to_i)) ) && !x[:nistid].nil? }
+      entries = @cwe_nist_mapping.select { |x| (x[:pluginfamily].eql?(pluginfamily) && (x[:pluginid].eql?('*') || x[:pluginid].eql?(pluginid.to_i))) && !x[:nistid].nil? }
       tags = entries.map { |x| [x[:nistid].split('|'), "Rev_#{x[:rev]}"] }
       tags.empty? ? DEFAULT_NIST_TAG : tags.flatten.uniq
     end
@@ -148,15 +141,15 @@ module HeimdallTools
     def impact(severity)
       # Map CAT levels and Plugin severity to HDF impact levels
       case severity
-      when "0"
+      when '0'
         IMPACT_MAPPING[:Info]
-      when "1","III"
+      when '1', 'III'
         IMPACT_MAPPING[:Low]
-      when "2","II"
+      when '2', 'II'
         IMPACT_MAPPING[:Medium]
-      when "3","I"
+      when '3', 'I'
         IMPACT_MAPPING[:High]
-      when "4"
+      when '4'
         IMPACT_MAPPING[:Critical]
       else
         -1
@@ -172,17 +165,17 @@ module HeimdallTools
     end
 
     def desc_tags(data, label)
-      { "data": data || NA_STRING, "label": label || NA_STRING }
+      { data: data || NA_STRING, label: label || NA_STRING }
     end
 
     # Nessus report could have multiple issue entries for multiple findings of same issue type.
-    # The meta data is identical across entries 
+    # The meta data is identical across entries
     # method collapse_duplicates return unique controls with applicable findings collapsed into it.
     def collapse_duplicates(controls)
       unique_controls = []
 
       controls.map { |x| x['id'] }.uniq.each do |id|
-        collapsed_results = controls.select { |x| x['id'].eql?(id) }.map {|x| x['results']}
+        collapsed_results = controls.select { |x| x['id'].eql?(id) }.map { |x| x['results'] }
         unique_control = controls.find { |x| x['id'].eql?(id) }
         unique_control['results'] = collapsed_results.flatten
         unique_controls << unique_control
@@ -192,9 +185,9 @@ module HeimdallTools
 
     def to_hdf
       host_results = {}
-      @reports.each do | report|
+      @reports.each do |report|
         controls = []
-        report['ReportItem'].each do | item |
+        report['ReportItem'].each do |item|
           printf("\rProcessing: %s", $spinner.next)
           @item = {}
           @item['tags']               = {}
@@ -207,7 +200,7 @@ module HeimdallTools
           # Current version covers STIG based 'Policy Compliance' results
           # TODO Cover cases for 'Policy Compliance' results based on CIS
           if item['compliance-reference']
-            @item['id']                 = parse_refs(item['compliance-reference'],'Vuln-ID').join.to_s
+            @item['id']                 = parse_refs(item['compliance-reference'], 'Vuln-ID').join.to_s
           else
             @item['id']                 = item['pluginID'].to_s
           end
@@ -222,17 +215,17 @@ module HeimdallTools
             @item['desc']              = format_desc(item).to_s
           end
           if item['compliance-reference']
-            @item['impact']            = impact(parse_refs(item['compliance-reference'],'CAT').join.to_s)
+            @item['impact']            = impact(parse_refs(item['compliance-reference'], 'CAT').join.to_s)
           else
-            @item['impact']            = impact(item['severity']) 
+            @item['impact']            = impact(item['severity'])
           end
           if item['compliance-reference']
-            @item['tags']['nist']     = cci_nist_tag(parse_refs(item['compliance-reference'],'CCI'))
+            @item['tags']['nist']     = cci_nist_tag(parse_refs(item['compliance-reference'], 'CCI'))
           else
-            @item['tags']['nist']     = plugin_nist_tag(item['pluginFamily'],item['pluginID'])
+            @item['tags']['nist']     = plugin_nist_tag(item['pluginFamily'], item['pluginID'])
           end
           if item['compliance-solution']
-            @item['descriptions']       <<  desc_tags(item['compliance-solution'], 'check')
+            @item['descriptions']       << desc_tags(item['compliance-solution'], 'check')
           end
 
           @item['code']               = ''

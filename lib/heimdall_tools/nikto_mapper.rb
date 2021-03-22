@@ -9,10 +9,10 @@ NIKTO_NIST_MAPPING_FILE = File.join(RESOURCE_DIR, 'nikto-nist-mapping.csv')
 IMPACT_MAPPING = {
   high: 0.7,
   medium: 0.5,
-  low: 0.3,
+  low: 0.3
 }.freeze
 
-DEFAULT_NIST_TAG = ["SA-11", "RA-5"].freeze
+DEFAULT_NIST_TAG = %w{SA-11 RA-5}.freeze
 
 # Loading spinner sign
 $spinner = Enumerator.new do |e|
@@ -26,7 +26,7 @@ end
 
 module HeimdallTools
   class NiktoMapper
-    def initialize(nikto_json, name=nil, verbose = false)
+    def initialize(nikto_json, _name = nil, verbose = false)
       @nikto_json = nikto_json
       @verbose = verbose
 
@@ -36,9 +36,9 @@ module HeimdallTools
         raise "Invalid Nikto to NIST mapping file: Exception: #{e}"
       end
 
-        # TODO: Support Multi-target scan results
-        # Nikto multi-target scans generate invalid format JSONs
-        # Possible workaround to use https://stackoverflow.com/a/58209963/1670307
+      # TODO: Support Multi-target scan results
+      # Nikto multi-target scans generate invalid format JSONs
+      # Possible workaround to use https://stackoverflow.com/a/58209963/1670307
 
       begin
         @project = JSON.parse(nikto_json)
@@ -64,7 +64,7 @@ module HeimdallTools
     def finding(vulnerability)
       finding = {}
       finding['status'] = 'failed'
-      finding['code_desc'] = "URL : #{vulnerability['url'].to_s } Method: #{vulnerability['method'].to_s}"
+      finding['code_desc'] = "URL : #{vulnerability['url']} Method: #{vulnerability['method']}"
       finding['run_time'] = NA_FLOAT
       finding['start_time'] = NA_STRING
       [finding]
@@ -83,32 +83,32 @@ module HeimdallTools
     def parse_mapper
       csv_data = CSV.read(NIKTO_NIST_MAPPING_FILE, **{ encoding: 'UTF-8',
                                                    headers: true,
-                                                   header_converters: :symbol})
+                                                   header_converters: :symbol })
       csv_data.map(&:to_hash)
     end
 
     def desc_tags(data, label)
-      { "data": data || NA_STRING, "label": label || NA_STRING }
+      { data: data || NA_STRING, label: label || NA_STRING }
     end
 
-    # Nikto report could have multiple vulnerability entries for multiple findings of same issue type.  
-    # The meta data is identical across entries   
-    # method collapse_duplicates return unique controls with applicable findings collapsed into it. 
-    def collapse_duplicates(controls) 
-      unique_controls = []  
+    # Nikto report could have multiple vulnerability entries for multiple findings of same issue type.
+    # The meta data is identical across entries
+    # method collapse_duplicates return unique controls with applicable findings collapsed into it.
+    def collapse_duplicates(controls)
+      unique_controls = []
 
-      controls.map { |x| x['id'] }.uniq.each do |id|  
-        collapsed_results = controls.select { |x| x['id'].eql?(id) }.map {|x| x['results']} 
-        unique_control = controls.find { |x| x['id'].eql?(id) } 
-        unique_control['results'] = collapsed_results.flatten 
-        unique_controls << unique_control 
-      end 
-      unique_controls 
-    end 
+      controls.map { |x| x['id'] }.uniq.each do |id|
+        collapsed_results = controls.select { |x| x['id'].eql?(id) }.map { |x| x['results'] }
+        unique_control = controls.find { |x| x['id'].eql?(id) }
+        unique_control['results'] = collapsed_results.flatten
+        unique_controls << unique_control
+      end
+      unique_controls
+    end
 
     def to_hdf
       controls = []
-      @project['vulnerabilities'].each do | vulnerability |
+      @project['vulnerabilities'].each do |vulnerability|
         printf("\rProcessing: %s", $spinner.next)
 
         item = {}
@@ -125,11 +125,11 @@ module HeimdallTools
         # Duplicating vulnerability msg field
         item['desc']               = vulnerability['msg'].to_s
 
-        # Nitko does not provide finding severity; hard-coding severity to medium 
-        item['impact']             = impact('medium') 
+        # Nitko does not provide finding severity; hard-coding severity to medium
+        item['impact']             = impact('medium')
         item['code']               = NA_STRING
         item['results']            = finding(vulnerability)
-        item['tags']['nist']       = nist_tag( vulnerability['id'].to_s )
+        item['tags']['nist']       = nist_tag(vulnerability['id'].to_s)
         item['tags']['ösvdb']      = vulnerability['OSVDB']
 
         controls << item

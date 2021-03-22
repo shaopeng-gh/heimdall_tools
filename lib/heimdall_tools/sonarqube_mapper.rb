@@ -5,7 +5,7 @@ require 'heimdall_tools/hdf'
 
 RESOURCE_DIR = Pathname.new(__FILE__).join('../../data')
 
-DEFAULT_NIST_TAG = ["SA-11", "RA-5"].freeze
+DEFAULT_NIST_TAG = %w{SA-11 RA-5}.freeze
 
 MAPPING_FILES = {
   cwe: File.join(RESOURCE_DIR, 'cwe-nist-mapping.csv'),
@@ -33,16 +33,18 @@ class SonarQubeApi
 
   PAGE_SIZE = 100
 
-  def initialize(api_url, auth=nil)
+  def initialize(api_url, auth = nil)
     @api_url = api_url
     @auth = auth
   end
 
-  def query_api(endpoint, params={})
-    creds = {
-              username: @auth.split(':')[0],
-              password: @auth.split(':')[1]
-    } unless @auth.nil?
+  def query_api(endpoint, params = {})
+    unless @auth.nil?
+      creds = {
+        username: @auth.split(':')[0],
+                password: @auth.split(':')[1]
+      }
+    end
 
     response = HTTParty.get(@api_url + endpoint, { query: params, basic_auth: creds })
     check_response response
@@ -109,9 +111,9 @@ end
 module HeimdallTools
   class SonarQubeMapper
     # Fetches the necessary data from the API and builds report
-    def initialize(project_name, sonarqube_url, auth=nil)
+    def initialize(project_name, sonarqube_url, auth = nil)
       @project_name = project_name
-      @api = SonarQubeApi.new(sonarqube_url,auth)
+      @api = SonarQubeApi.new(sonarqube_url, auth)
 
       @mappings = load_nist_mappings
       @findings = @api.query_issues(@project_name).map { |x| Finding.new(x, @api) }
@@ -132,16 +134,16 @@ module HeimdallTools
                                             headers: true,
                                             header_converters: :symbol,
                                             converters: :all })
-        mappings[mapping_type] = Hash[csv_data.reject{ |row| row[:nistid].nil? }.map { |row|
-          [row[(mapping_type.to_s.downcase + 'id').to_sym].to_s, [row[:nistid], "Rev_#{row[:rev]}"]]
-        }]
+        mappings[mapping_type] = csv_data.reject { |row| row[:nistid].nil? }.map { |row|
+          [row["#{mapping_type.to_s.downcase}id".to_sym].to_s, [row[:nistid], "Rev_#{row[:rev]}"]]
+        }.to_h
       end
       mappings
     end
 
     # Returns a report in HDF format
     def to_hdf
-      results = HeimdallDataFormat.new(profile_name: "SonarQube Scan",
+      results = HeimdallDataFormat.new(profile_name: 'SonarQube Scan',
                                        version: @api.query_version,
                                        title: "SonarQube Scan of Project: #{@project_name}",
                                        summary: "SonarQube Scan of Project: #{@project_name}",
@@ -156,7 +158,7 @@ class Control
   # OWASP is stated specifically, ex owasp-a1
   #
   # SonarQube is inconsistent with tags (ex some cwe rules don't have cwe number in desc,) as noted below
-  TAG_DATA = {} # NOTE: We count on Ruby to preserve order for TAG_DATA
+  TAG_DATA = {}.freeze # NOTE: We count on Ruby to preserve order for TAG_DATA
   TAG_DATA[:cwe] = {
     # Some rules with cwe tag don't have cwe number in description!
     # Currently only squid:S2658, but it has OWASP tag so we can use that.
@@ -206,8 +208,8 @@ class Control
       reg = Regexp.new(tag_data[:regex], Regexp::IGNORECASE)
       parsed_tags += @data['htmlDesc'].scan(reg).map(&:first)
 
-      if parsed_tags.empty? and not KNOWN_BAD_RULES.include? @key
-        puts "Error: Rule #{@key}: No regex matches for #{tag_type} tag." if parsed_tags.empty?
+      if parsed_tags.empty? and not KNOWN_BAD_RULES.include? @key && parsed_tags.empty?
+        puts "Error: Rule #{@key}: No regex matches for #{tag_type} tag."
       end
     else
       # If the tag type doesn't have a regex, it is specific enough to be mapped directly
@@ -239,11 +241,11 @@ class Control
       return [@mappings[tag_type][parsed_tag]].flatten.uniq
     end
 
-    DEFAULT_NIST_TAG # Entries with unmapped NIST tags are defaulted to NIST tags ‘SA-11, RA-5 Rev_4’
+    DEFAULT_NIST_TAG # Entries with unmapped NIST tags fall back to defaults
   end
 
   def hdf
-    # Note: Structure is based on fortify -> HDF converter output
+    # NOTE: Structure is based on fortify -> HDF converter output
     {
       title: @data['name'],
         desc: @data['htmlDesc'],
@@ -256,7 +258,7 @@ class Control
         id: @key,
         descriptions: NA_ARRAY,
         refs: NA_ARRAY,
-        source_location: NA_HASH,
+        source_location: NA_HASH
     }
   end
 end
@@ -284,10 +286,10 @@ class Finding
 
     snip_html = "StartLine: #{snip_start}, EndLine: #{snip_end}<br>Code:<pre>#{snip}</pre>"
     {
-        status: 'failed',
+      status: 'failed',
         code_desc: "Path:#{component}:#{vuln_start}:#{vuln_end} #{snip_html}",
         run_time:  NA_FLOAT,
-        start_time: Time.now.strftime("%a,%d %b %Y %X")
+        start_time: Time.now.strftime('%a,%d %b %Y %X')
     }
   end
 end

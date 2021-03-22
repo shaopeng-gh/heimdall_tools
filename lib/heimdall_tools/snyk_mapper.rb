@@ -10,12 +10,12 @@ CWE_NIST_MAPPING_FILE = File.join(RESOURCE_DIR, 'cwe-nist-mapping.csv')
 IMPACT_MAPPING = {
   high: 0.7,
   medium: 0.5,
-  low: 0.3,
+  low: 0.3
 }.freeze
 
 SNYK_VERSION_REGEX = 'v(\d+.)(\d+.)(\d+)'.freeze
 
-DEFAULT_NIST_TAG = ["SA-11", "RA-5"].freeze
+DEFAULT_NIST_TAG = %w{SA-11 RA-5}.freeze
 
 # Loading spinner sign
 $spinner = Enumerator.new do |e|
@@ -29,7 +29,7 @@ end
 
 module HeimdallTools
   class SnykMapper
-    def initialize(synk_json, name=nil, verbose = false)
+    def initialize(synk_json, _name = nil, verbose = false)
       @synk_json = synk_json
       @verbose = verbose
 
@@ -38,10 +38,9 @@ module HeimdallTools
         @projects = JSON.parse(synk_json)
 
         # Cover single and multi-project scan use cases.
-        unless @projects.kind_of?(Array)
-          @projects = [ @projects ]
+        unless @projects.is_a?(Array)
+          @projects = [@projects]
         end
-
       rescue StandardError => e
         raise "Invalid Snyk JSON file provided Exception: #{e}"
       end
@@ -52,7 +51,7 @@ module HeimdallTools
       begin
         info['policy'] = project['policy']
         reg = Regexp.new(SNYK_VERSION_REGEX, Regexp::IGNORECASE)
-        info['version'] = info['policy'].scan(reg).join 
+        info['version'] = info['policy'].scan(reg).join
         info['projectName'] = project['projectName']
         info['summary'] = project['summary']
 
@@ -65,7 +64,7 @@ module HeimdallTools
     def finding(vulnerability)
       finding = {}
       finding['status'] = 'failed'
-      finding['code_desc'] = "From : [ #{vulnerability['from'].join(" , ").to_s } ]"
+      finding['code_desc'] = "From : [ #{vulnerability['from'].join(' , ')} ]"
       finding['run_time'] = NA_FLOAT
 
       # Snyk results does not profile scan timestamp; using current time to satisfy HDF format
@@ -81,9 +80,9 @@ module HeimdallTools
 
     def parse_identifiers(vulnerability, ref)
       # Extracting id number from reference style CWE-297
-      vulnerability['identifiers'][ref].map { |e| e.split("#{ref}-")[1]  }
-      rescue
-        return []
+      vulnerability['identifiers'][ref].map { |e| e.split("#{ref}-")[1] }
+    rescue StandardError
+      []
     end
 
     def impact(severity)
@@ -99,17 +98,17 @@ module HeimdallTools
     end
 
     def desc_tags(data, label)
-      { "data": data || NA_STRING, "label": label || NA_STRING }
+      { data: data || NA_STRING, label: label || NA_STRING }
     end
 
     # Snyk report could have multiple vulnerability entries for multiple findings of same issue type.
-    # The meta data is identical across entries 
+    # The meta data is identical across entries
     # method collapse_duplicates return unique controls with applicable findings collapsed into it.
     def collapse_duplicates(controls)
       unique_controls = []
 
       controls.map { |x| x['id'] }.uniq.each do |id|
-        collapsed_results = controls.select { |x| x['id'].eql?(id) }.map {|x| x['results']}
+        collapsed_results = controls.select { |x| x['id'].eql?(id) }.map { |x| x['results'] }
         unique_control = controls.find { |x| x['id'].eql?(id) }
         unique_control['results'] = collapsed_results.flatten
         unique_controls << unique_control
@@ -117,12 +116,11 @@ module HeimdallTools
       unique_controls
     end
 
-
     def to_hdf
       project_results = {}
-      @projects.each do | project |
+      @projects.each do |project|
         controls = []
-        project['vulnerabilities'].each do | vulnerability |
+        project['vulnerabilities'].each do |vulnerability|
           printf("\rProcessing: %s", $spinner.next)
 
           item = {}
@@ -135,13 +133,13 @@ module HeimdallTools
           item['title']              = vulnerability['title'].to_s
           item['id']                 = vulnerability['id'].to_s
           item['desc']               = vulnerability['description'].to_s
-          item['impact']             = impact(vulnerability['severity']) 
+          item['impact']             = impact(vulnerability['severity'])
           item['code']               = ''
           item['results']            = finding(vulnerability)
-          item['tags']['nist']       = nist_tag( parse_identifiers( vulnerability, 'CWE') )
-          item['tags']['cweid']      = parse_identifiers( vulnerability, 'CWE')
-          item['tags']['cveid']      = parse_identifiers( vulnerability, 'CVE')
-          item['tags']['ghsaid']     = parse_identifiers( vulnerability, 'GHSA')
+          item['tags']['nist']       = nist_tag(parse_identifiers(vulnerability, 'CWE'))
+          item['tags']['cweid']      = parse_identifiers(vulnerability, 'CWE')
+          item['tags']['cveid']      = parse_identifiers(vulnerability, 'CVE')
+          item['tags']['ghsaid']     = parse_identifiers(vulnerability, 'GHSA')
 
           controls << item
         end

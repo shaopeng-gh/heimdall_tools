@@ -17,13 +17,11 @@ IMPACT_MAPPING = {
   Information: 0.0
 }.freeze
 
-DEFAULT_NIST_TAG = ["SA-11", "RA-5"].freeze
-
-# rubocop:disable Metrics/AbcSize
+DEFAULT_NIST_TAG = %w{SA-11 RA-5}.freeze
 
 module HeimdallTools
   class NetsparkerMapper
-    def initialize(xml, name=nil, verbose = false)
+    def initialize(xml, _name = nil, verbose = false)
       @verbose = verbose
 
       begin
@@ -33,7 +31,6 @@ module HeimdallTools
 
         @vulnerabilities = data['netsparker-enterprise']['vulnerabilities']['vulnerability']
         @scan_info = data['netsparker-enterprise']['target']
-
       rescue StandardError => e
         raise "Invalid Netsparker XML file provided Exception: #{e}"
       end
@@ -63,7 +60,7 @@ module HeimdallTools
       controls = collapse_duplicates(controls)
       results = HeimdallDataFormat.new(profile_name: 'Netsparker Enterprise Scan',
                                        title: "Netsparker Enterprise Scan ID: #{@scan_info['scan-id']} URL: #{@scan_info['url']}",
-                                       summary: "Netsparker Enterprise Scan",
+                                       summary: 'Netsparker Enterprise Scan',
                                        target_id: @scan_info['url'],
                                        controls: controls)
       results.to_hdf
@@ -79,25 +76,25 @@ module HeimdallTools
       finding = {}
       finding['status'] = 'failed'
       finding['code_desc'] = []
-      finding['code_desc'] << "http-request : #{parse_html(vulnerability['http-request']['content']) }"
+      finding['code_desc'] << "http-request : #{parse_html(vulnerability['http-request']['content'])}"
       finding['code_desc'] << "method : #{vulnerability['http-request']['method']}"
       finding['code_desc'] = finding['code_desc'].join("\n")
 
       finding['message'] = []
-      finding['message'] << "http-response : #{parse_html(vulnerability['http-response']['content']) }"
+      finding['message'] << "http-response : #{parse_html(vulnerability['http-response']['content'])}"
       finding['message'] << "duration : #{vulnerability['http-response']['duration']}"
       finding['message'] << "status-code : #{vulnerability['http-response']['status-code']}"
       finding['message'] = finding['message'].join("\n")
       finding['run_time'] = NA_FLOAT
 
-      finding['start_time'] =  @scan_info['initiated']
+      finding['start_time'] = @scan_info['initiated']
       [finding]
     end
 
     def format_control_desc(vulnerability)
       text = []
-      text << "#{parse_html(vulnerability['description'])}" unless vulnerability['description'].nil?
-      text << "Exploitation-skills: #{parse_html(vulnerability['exploitation-skills'])}"  unless vulnerability['exploitation-skills'].nil?
+      text << parse_html(vulnerability['description']).to_s unless vulnerability['description'].nil?
+      text << "Exploitation-skills: #{parse_html(vulnerability['exploitation-skills'])}" unless vulnerability['exploitation-skills'].nil?
       text << "Extra-information: #{vulnerability['extra-information']}" unless vulnerability['extra-information'].nil?
       text << "Classification: #{vulnerability['classification']}" unless vulnerability['classification'].nil?
       text << "Impact: #{parse_html(vulnerability['impact'])}" unless vulnerability['impact'].nil?
@@ -106,14 +103,14 @@ module HeimdallTools
       text << "Certainty: #{vulnerability['certainty']}" unless vulnerability['certainty'].nil?
       text << "Type: #{vulnerability['type']}" unless vulnerability['type'].nil?
       text << "Confirmed: #{vulnerability['confirmed']}" unless vulnerability['confirmed'].nil?
-      text.join("<br>")
+      text.join('<br>')
     end
 
     def format_check_text(vulnerability)
       text = []
       text << "Exploitation-skills: #{parse_html(vulnerability['exploitation-skills'])}" unless vulnerability['exploitation-skills'].nil?
       text << "Proof-of-concept: #{parse_html(vulnerability['proof-of-concept'])}" unless vulnerability['proof-of-concept'].nil?
-      text.join("<br>")
+      text.join('<br>')
     end
 
     def format_fix_text(vulnerability)
@@ -121,7 +118,7 @@ module HeimdallTools
       text << "Remedial-actions: #{parse_html(vulnerability['remedial-actions'])}" unless vulnerability['remedial-actions'].nil?
       text << "Remedial-procedure: #{parse_html(vulnerability['remedial-procedure'])}" unless vulnerability['remedial-procedure'].nil?
       text << "Remedy-references: #{parse_html(vulnerability['remedy-references'])}" unless vulnerability['remedy-references'].nil?
-      text.join("<br>")
+      text.join('<br>')
     end
 
     def nist_tag(classification)
@@ -146,7 +143,7 @@ module HeimdallTools
     end
 
     def desc_tags(data, label)
-      { "data": data || NA_STRING, "label": label || NA_STRING }
+      { data: data || NA_STRING, label: label || NA_STRING }
     end
 
     # Netsparker report could have multiple issue entries for multiple findings of same issue type.
@@ -156,7 +153,7 @@ module HeimdallTools
       unique_controls = []
 
       controls.map { |x| x['id'] }.uniq.each do |id|
-        collapsed_results = controls.select { |x| x['id'].eql?(id) }.map {|x| x['results']}
+        collapsed_results = controls.select { |x| x['id'].eql?(id) }.map { |x| x['results'] }
         unique_control = controls.find { |x| x['id'].eql?(id) }
         unique_control['results'] = collapsed_results.flatten
         unique_controls << unique_control
