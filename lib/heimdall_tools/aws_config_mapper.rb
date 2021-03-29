@@ -257,8 +257,10 @@ module HeimdallTools
     end
 
     def check_text(config_rule)
-      params = (JSON.parse(config_rule[:input_parameters]).map { |key, value| "#{key}: #{value}" }).join('<br/>')
-      check_text = config_rule[:config_rule_arn]
+      # If no input parameters, then provide an empty JSON array to the JSON
+      # parser because passing nil to JSON.parse throws an exception.
+      params = (JSON.parse(config_rule[:input_parameters] || '[]').map { |key, value| "#{key}: #{value}" }).join('<br/>')
+      check_text = config_rule[:config_rule_arn] || ''
       check_text += "<br/>#{params}" unless params.empty?
       check_text
     end
