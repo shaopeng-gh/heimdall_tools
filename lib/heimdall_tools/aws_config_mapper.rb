@@ -18,11 +18,15 @@ INSUFFICIENT_DATA_MSG = 'Not enough data has been collectd to determine complian
 #
 module HeimdallTools
   class AwsConfigMapper
-    def initialize(custom_mapping, verbose = false)
+    def initialize(custom_mapping, endpoint = nil, verbose = false)
       @verbose = verbose
       @default_mapping = get_rule_mapping(AWS_CONFIG_MAPPING_FILE)
       @custom_mapping = custom_mapping.nil? ? {} : get_rule_mapping(custom_mapping)
-      @client = Aws::ConfigService::Client.new
+      if endpoint.nil?
+        @client = Aws::ConfigService::Client.new
+      else
+        @client = Aws::ConfigService::Client.new(endpoint: endpoint)
+      end
       @issues = get_all_config_rules
     end
 
@@ -71,7 +75,7 @@ module HeimdallTools
     #
     # Returns: A mapped version of the csv in the format { rule_name: row, ... }
     def get_rule_mapping(path)
-      CSV.read(path, headers: true).map { |row| [row[0], row] }.to_h
+      CSV.read(path, headers: true).map { |row| [row['AwsConfigRuleSourceIdentifier'], row] }.to_h
     end
 
     ##
@@ -238,18 +242,17 @@ module HeimdallTools
     def hdf_tags(config_rule)
       result = {}
 
-      @default_mapping
-      @custom_mapping
+      source_identifier = config_rule.dig(:source, :source_identifier)
 
       # NIST tag
       result['nist'] = []
-      default_mapping_match = @default_mapping[config_rule[:config_rule_name]]
+      default_mapping_match = @default_mapping[source_identifier]
 
-      result['nist'] += default_mapping_match[1].split('|') unless default_mapping_match.nil?
+      result['nist'] += default_mapping_match['NIST-ID'].split('|') unless default_mapping_match.nil?
 
-      custom_mapping_match = @custom_mapping[config_rule[:config_rule_name]]
+      custom_mapping_match = @custom_mapping[source_identifier]
 
-      result['nist'] += custom_mapping_match[1].split('|').map { |name| "#{name} (user provided)" } unless custom_mapping_match.nil?
+      result['nist'] += custom_mapping_match['NIST-ID'].split('|').map { |name| "#{name} (user provided)" } unless custom_mapping_match.nil?
 
       result['nist'] = ['unmapped'] if result['nist'].empty?
 
