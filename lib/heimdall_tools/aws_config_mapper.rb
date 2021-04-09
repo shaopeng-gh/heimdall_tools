@@ -38,8 +38,8 @@ module HeimdallTools
     def to_hdf
       controls = @issues.map do |issue|
         @item = {}
-        @item['id']              = issue[:config_rule_name]
-        @item['title']           = issue[:config_rule_name]
+        @item['id']              = issue[:config_rule_id]
+        @item['title']           = "#{get_account_id(issue[:config_rule_arn])} - #{issue[:config_rule_name]}"
         @item['desc']            = issue[:description]
         @item['impact']          = 0.5
         @item['tags']            = hdf_tags(issue)
@@ -55,6 +55,7 @@ module HeimdallTools
           @item
         end
       end
+
       results = HeimdallDataFormat.new(
         profile_name: 'AWS Config',
          title: 'AWS Config',
@@ -66,6 +67,20 @@ module HeimdallTools
     end
 
     private
+
+    ##
+    # Gets the account ID from a config rule ARN
+    #
+    # https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html
+    # https://docs.aws.amazon.com/general/latest/gr/acct-identifiers.html
+    #
+    # Params:
+    # - arn: The ARN of the config rule
+    #
+    # Returns: The account ID portion of the ARN
+    def get_account_id(arn)
+      /:(\d{12}):config-rule/.match(arn)&.captures&.first || 'no-account-id'
+    end
 
     ##
     # Read in a config rule -> 800-53 control mapping CSV.
@@ -263,7 +278,8 @@ module HeimdallTools
       # If no input parameters, then provide an empty JSON array to the JSON
       # parser because passing nil to JSON.parse throws an exception.
       params = (JSON.parse(config_rule[:input_parameters] || '[]').map { |key, value| "#{key}: #{value}" }).join('<br/>')
-      check_text = config_rule[:config_rule_arn] || ''
+      check_text = "ARN: #{config_rule[:config_rule_arn] || 'N/A'}"
+      check_text += "<br/>Source Identifier: #{config_rule.dig(:source, :source_identifier) || 'N/A'}"
       check_text += "<br/>#{params}" unless params.empty?
       check_text
     end
