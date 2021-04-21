@@ -19,14 +19,15 @@ HeimdallTools supplies several methods to convert output from various tools to "
 
 ## Want to recommend a mapper for another tool? Please use these steps:
   1. Create an [issue](https://github.com/mitre/heimdall_tools/issues/new), and email saf@groups.mitre.org citing the issue link so we can help
-  2. Provide a sample output, preferably the most detailed the tool can provide, and also preferably in a machine-readable format, such as xml, json, or csv - whichever is natively available. If it is sensitive we'll work that in #3. (If it's an API only, ok well let's just talk in #3 too)
+  2. Provide a sample output, preferably the most detailed the tool can provide, and also preferably in a machine-readable format, such as xml, json, or csv - whichever is natively available. If it is sensitive we'll work that in #3. (If it's an API only, we'll also just talk about it in #3)
   3. Let's arrange a time to take a close look at the data it provides to get an idea of all it has to offer. We'll suggest an initial mapping of the HDF core elements. (see https://saf.mitre.org/#/normalize)
   4. Note: if the tool doesn't provide a NIST SP 800-53 reference, we've worked on mappings to other references such as CWE or OWASP Top 10:  
     https://github.com/mitre/heimdall_tools/tree/master/lib/data  
     https://github.com/mitre/heimdall_tools/blob/master/lib/data/cwe-nist-mapping.csv  
     https://github.com/mitre/heimdall_tools/blob/master/lib/data/owasp-nist-mapping.csv  
-  5. If the tool doesn't provide something for 4 or a core element such as impact, we'll help you identify a custom mapping approach.
-  6. Finally, we'll help you decide how to preserve any other information (non-core element) the tool provides to ensure the original tool's intent comes through for the user when the data is viewed in Heimdall
+  5. If the tool doesn't provide something for #4, or another core element such as impact, we'll help you identify a custom mapping approach.
+  6. We'll help you decide how to preserve any other information (non-core elements) the tool provides to ensure that all of the original tool's intent comes through for the user when the data is viewed in Heimdall.
+  7. Finally, We'll provide final peer review and support merging your pull request.
 We appreciate your contributions, but we're here to help!
 
 ## How to Install Heimdall Tools:
