@@ -113,6 +113,7 @@ Style/GlobalVars:
     - 'lib/heimdall_tools/jfrog_xray_mapper.rb'
     - 'lib/heimdall_tools/nessus_mapper.rb'
     - 'lib/heimdall_tools/nikto_mapper.rb'
+    - 'lib/heimdall_tools/sarif_mapper.rb'
     - 'lib/heimdall_tools/snyk_mapper.rb'
 
 # Offense count: 10
@@ -128,5 +129,6 @@ Style/OptionalBooleanParameter:
     - 'lib/heimdall_tools/nessus_mapper.rb'
     - 'lib/heimdall_tools/netsparker_mapper.rb'
     - 'lib/heimdall_tools/nikto_mapper.rb'
+    - 'lib/heimdall_tools/sarif_mapper.rb'
     - 'lib/heimdall_tools/snyk_mapper.rb'
     - 'lib/heimdall_tools/zap_mapper.rb'
