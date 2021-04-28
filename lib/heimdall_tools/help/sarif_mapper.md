@@ -1,4 +1,4 @@
-  sarif_mapper translates an Sarif results JSON file into HDF format JSON to be viewable in Heimdall
+  sarif_mapper translates a SARIF JSON file into HDF format JSON to be viewable in Heimdall
 
 Examples:
 

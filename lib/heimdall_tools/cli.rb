@@ -134,7 +134,7 @@ module HeimdallTools
       puts options[:output].to_s
     end
 
-    desc 'sarif_mapper', 'sarif_mapper translates Sarif results Json into HDF format Json to be viewable in Heimdall'
+    desc 'sarif_mapper', 'sarif_mapper translates a SARIF JSON file into HDF format JSON to be viewable in Heimdall'
     long_desc Help.text(:sarif_mapper)
     option :json, required: true, aliases: '-j'
     option :output, required: true, aliases: '-o'
