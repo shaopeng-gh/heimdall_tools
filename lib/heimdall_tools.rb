@@ -16,4 +16,5 @@ module HeimdallTools
   autoload :DBProtectMapper, 'heimdall_tools/dbprotect_mapper'
   autoload :AwsConfigMapper, 'heimdall_tools/aws_config_mapper'
   autoload :NetsparkerMapper, 'heimdall_tools/netsparker_mapper'
+  autoload :SarifMapper, 'heimdall_tools/sarif_mapper'
 end

@@ -16,6 +16,7 @@ HeimdallTools supplies several methods to convert output from various tools to "
 - **dbprotect_mapper** - database vulnerability scanner
 - **aws_config_mapper** - assess, audit, and evaluate AWS resources
 - **netsparker_mapper** - web application security scanner
+- **sarif_mapper** - static analysis results interchange format
 
 ## Want to recommend a mapper for another tool? Please use these steps:
   1. Create an [issue](https://github.com/mitre/heimdall_tools/issues/new), and email saf@groups.mitre.org citing the issue link so we can help
@@ -265,6 +266,21 @@ FLAGS:
     -V --verbose                     : verbose run [optional].
 
 example: heimdall_tools netsparker_mapper -x netsparker_results.xml -o netsparker_hdf.json
+```
+
+## sarif_mapper
+
+sarif_mapper translates an sarif results JSON file into HDF format JSON to be viewable in Heimdall
+
+```
+USAGE: heimdall_tools sarif_mapper [OPTIONS] -x <sarif-results-json> -o <hdf-scan-results.json>
+
+FLAGS:
+    -j <sarif_results_json>          : path to sarif results JSON file.
+    -o --output_prefix <prefix>      : path to output scan-results json.
+    -V --verbose                     : verbose run [optional].
+
+example: heimdall_tools sarif_mapper -j sarif_results.json -o sarif_results_hdf.json
 ```
 
 ## version  
