@@ -54,7 +54,7 @@ jobs:
         run: |
           heimdall_tools sarif_mapper -j ./sample_jsons/sarif_mapper/sample_input_jsons/sarif_input.sarif -o sarif_output.json
           jq 'del(.version, .platform.release)' sarif_output.json > sarif_output_jq.json
-          jq 'del(.version, .platform.release)' ./sample_jsons/sarif_mapper/sarif_input.sarif > sarif_sample.json
+          jq 'del(.version, .platform.release)' ./sample_jsons/sarif_mapper/sarif_output.json > sarif_sample.json
           diff sarif_sample.json sarif_output_jq.json
       - name: Test zap mapper webgoat.json
         run: |
