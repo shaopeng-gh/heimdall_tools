@@ -273,7 +273,7 @@ example: heimdall_tools netsparker_mapper -x netsparker_results.xml -o netsparke
 sarif_mapper translates a SARIF JSON file into HDF format JSON to be viewable in Heimdall
 
 ```
-USAGE: heimdall_tools sarif_mapper [OPTIONS] -x <sarif-results-json> -o <hdf-scan-results.json>
+USAGE: heimdall_tools sarif_mapper [OPTIONS] -j <sarif-results-json> -o <hdf-scan-results.json>
 
 FLAGS:
     -j <sarif_results_json>          : path to sarif results JSON file.

@@ -67,7 +67,7 @@ module HeimdallTools
       finding['code_desc'].strip!
       finding['run_time'] = NA_FLOAT
       finding['start_time'] = NA_STRING
-      [finding]
+      finding
     end
 
     def add_nist_tag_from_cwe(cweid, taxonomy_name, tags_node)
@@ -152,32 +152,36 @@ module HeimdallTools
       { data: data || NA_STRING, label: label || NA_STRING }
     end
 
+    def process_item(run, result, controls)
+      printf("\rProcessing: %s", $spinner.next)
+      control = controls.find { |x| x['id'].eql?(result['ruleId']) }
+
+      if control
+        control['results'] << finding(result)
+      else
+        rule_info = get_rule_info(run, result, result['ruleId'])
+        item = {}
+        item['tags']               = rule_info['rule_tags']
+        item['descriptions']       = []
+        item['refs']               = NA_ARRAY
+        item['source_location']    = { ref: get_location(result)['uri'], line: get_location(result)['start_line'] }
+        item['descriptions']       = NA_ARRAY
+        item['title']              = rule_info['rule_name'].to_s
+        item['id']                 = result['ruleId'].to_s
+        item['desc']               = rule_info['rule_short_description'].to_s
+        item['impact']             = impact(result['level'].to_s)
+        item['code']               = NA_STRING
+        item['results']            = [finding(result)]
+        item['tags']               = add_nist_tag_from_cwe(parse_identifiers(rule_info['rule_tags'], 'CWE'), 'nist', item['tags'])
+        controls << item
+      end
+    end
+
     def to_hdf
       controls = []
       @sarif_log['runs'].each do |run|
         run['results'].each do |result|
-          printf("\rProcessing: %s", $spinner.next)
-
-          rule_info = get_rule_info(run, result, result['ruleId'])
-
-          item = {}
-          item['tags']               = rule_info['rule_tags']
-          item['descriptions']       = []
-          item['refs']               = NA_ARRAY
-          item['source_location']    = { ref: get_location(result)['uri'], line: get_location(result)['start_line'] }
-          item['descriptions']       = NA_ARRAY
-
-          item['title']              = rule_info['rule_name'].to_s
-          item['id']                 = result['ruleId'].to_s
-          item['desc']               = rule_info['rule_short_description'].to_s
-
-          item['impact']             = impact(result['level'].to_s)
-          item['code']               = NA_STRING
-          item['results']            = finding(result)
-
-          item['tags']               = add_nist_tag_from_cwe(parse_identifiers(rule_info['rule_tags'], 'CWE'), 'nist', item['tags'])
-
-          controls << item
+          process_item(run, result, controls)
         end
       end
 
