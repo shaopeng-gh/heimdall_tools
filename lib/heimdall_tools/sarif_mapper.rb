@@ -53,7 +53,7 @@ module HeimdallTools
 
     def finding(result)
       finding = {}
-      finding['status'] = 'failed'
+      finding['status'] = result['level'].nil? ? 'skipped' : 'failed'
       finding['code_desc'] = ''
       if get_location(result)['uri']
         finding['code_desc'] += " URL : #{get_location(result)['uri']}"
