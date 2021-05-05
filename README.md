@@ -276,7 +276,7 @@ sarif_mapper translates a SARIF JSON file into HDF format JSON to be�
 USAGE: heimdall_tools sarif_mapper [OPTIONS] -j <sarif-results-json> -o <hdf-scan-results.json>
 
 FLAGS:
-    -j <sarif_results_json>          : path to sarif results JSON file.
+    -j <sarif_results_json>          : path to SARIF results JSON file.
     -o --output_prefix <prefix>      : path to output scan-results json.
     -V --verbose                     : verbose run [optional].
 

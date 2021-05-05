@@ -34,20 +34,20 @@ module HeimdallTools
         @cwe_nist_mapping = parse_mapper
         @sarif_log = JSON.parse(@sarif_json)
       rescue StandardError => e
-        raise "Invalid Sarif JSON file provided\n\nException: #{e}"
+        raise "Invalid SARIF JSON file provided\n\nException: #{e}"
       end
     end
 
     def extract_scaninfo(sarif_log)
       info = {}
       begin
-        info['policy'] = 'Sarif'
+        info['policy'] = 'SARIF'
         info['version'] = sarif_log['version']
         info['projectName'] = 'Static Analysis Results Interchange Format'
         info['summary'] = NA_STRING
         info
       rescue StandardError => e
-        raise "Error extracting project info from sarif JSON file provided Exception: #{e}"
+        raise "Error extracting project info from SARIF JSON file provided Exception: #{e}"
       end
     end
 
@@ -137,7 +137,7 @@ module HeimdallTools
 
     def impact(severity)
       severity_mapping = IMPACT_MAPPING[severity.to_sym]
-      severity_mapping.nil? ? 0.0 : severity_mapping
+      severity_mapping.nil? ? 0.5 : severity_mapping
     end
 
     def parse_mapper
