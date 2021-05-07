@@ -53,7 +53,7 @@ module HeimdallTools
 
     def finding(result)
       finding = {}
-      finding['status'] = result['level'].nil? ? 'skipped' : 'failed'
+      finding['status'] = 'failed'
       finding['code_desc'] = ''
       if get_location(result)['uri']
         finding['code_desc'] += " URL : #{get_location(result)['uri']}"
@@ -137,7 +137,7 @@ module HeimdallTools
 
     def impact(severity)
       severity_mapping = IMPACT_MAPPING[severity.to_sym]
-      severity_mapping.nil? ? 0.5 : severity_mapping
+      severity_mapping.nil? ? 0.1 : severity_mapping
     end
 
     def parse_mapper
